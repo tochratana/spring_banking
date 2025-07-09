@@ -11,6 +11,6 @@ git add .
 git commit -m "$commit_message"
 
 # Push to the current branch
-git push
+git push origin main
 
 echo "✅ Changes pushed successfully!"
