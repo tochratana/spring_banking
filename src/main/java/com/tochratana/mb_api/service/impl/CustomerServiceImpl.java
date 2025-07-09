@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,7 +46,6 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setIsDeleted(false);
         customer.setAccounts(new ArrayList<>());
 
-        //customerRepository.save();
         customer = customerRepository.save(customer);
         return new CustomerResponse(
                 customer.getFullName(),
@@ -53,4 +53,31 @@ public class CustomerServiceImpl implements CustomerService {
                 customer.getEmail()
         );
     }
+
+    @Override
+    public List<CustomerResponse> findAllCustomer() {
+
+        // Contains the raw data from the database (all Customer entities)
+        List<Customer> customers = customerRepository.findAll();
+
+
+        // Contains the data that we want to return to the frontend or client (DTO format)
+        List<CustomerResponse> responses = new ArrayList<>();
+
+
+        for (Customer customer : customers) {
+
+            // Skip deleted customers if needed
+            if (!Boolean.TRUE.equals(customer.getIsDeleted())) {
+                responses.add(new CustomerResponse(
+                        customer.getFullName(),
+                        customer.getGender(),
+                        customer.getEmail()
+                ));
+            }
+        }
+
+        return responses;
+    }
+
 }

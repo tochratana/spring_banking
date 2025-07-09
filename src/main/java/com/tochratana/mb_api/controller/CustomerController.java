@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/customers")
@@ -19,5 +21,10 @@ public class CustomerController {
     @PostMapping
     public CustomerResponse createNew(@Valid  @RequestBody CreateCustomerRequest createCustomerRequest){
         return customerService.createNew(createCustomerRequest);
+    }
+
+    @GetMapping
+    public List<CustomerResponse> findAllCustomer(){
+        return customerService.findAllCustomer();
     }
 }
