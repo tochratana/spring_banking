@@ -3,6 +3,8 @@ package com.tochratana.mb_api.service.impl;
 import com.tochratana.mb_api.domain.Customer;
 import com.tochratana.mb_api.dto.CreateCustomerRequest;
 import com.tochratana.mb_api.dto.CustomerResponse;
+import com.tochratana.mb_api.dto.UpdateCustomerRequest;
+import com.tochratana.mb_api.mapper.CustomerMapper;
 import com.tochratana.mb_api.repository.CustomerRepository;
 import com.tochratana.mb_api.service.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,22 @@ import java.util.List;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final CustomerMapper customerMapper;
+
+    @Override
+    public void deleteByPhoneNumber(String phoneNumber) {
+        Customer customer = customerRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "Can't find phone Number"));
+        customerRepository.delete(customer);
+    }
+
+    @Override
+    public CustomerResponse findByPhoneNumber(String phoneNumber) {
+
+        return customerRepository.findByPhoneNumber(phoneNumber)
+                .map(customerMapper::fromCustomer)
+                .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "Can't find"));
+    }
 
     @Override
     public CustomerResponse createNew(CreateCustomerRequest createCustomerRequest) {
@@ -38,46 +56,46 @@ public class CustomerServiceImpl implements CustomerService {
             );
         }
 
-        Customer customer = new Customer();
-        customer.setFullName(createCustomerRequest.fullName());
-        customer.setGender(createCustomerRequest.gender());
-        customer.setRemark(createCustomerRequest.remark());
-        customer.setEmail(createCustomerRequest.email());
+        // Use mapper to convert request to entity
+        Customer customer = customerMapper.toCustomer(createCustomerRequest);
         customer.setIsDeleted(false);
         customer.setAccounts(new ArrayList<>());
 
+        // save to db
         customer = customerRepository.save(customer);
-        return new CustomerResponse(
-                customer.getFullName(),
-                customer.getGender(),
-                customer.getEmail()
-        );
+
+        // Use mapper to convert entity to response
+        return customerMapper.fromCustomer(customer);
     }
 
     @Override
     public List<CustomerResponse> findAllCustomer() {
-
-        // Contains the raw data from the database (all Customer entities)
         List<Customer> customers = customerRepository.findAll();
 
+        // Filter out deleted customers
+        List<Customer> nonDeleted = customers.stream()
+                .filter(c -> !Boolean.TRUE.equals(c.getIsDeleted()))
+                .toList();
 
-        // Contains the data that we want to return to the frontend or client (DTO format)
-        List<CustomerResponse> responses = new ArrayList<>();
-
-
-        for (Customer customer : customers) {
-
-            // Skip deleted customers if needed
-            if (!Boolean.TRUE.equals(customer.getIsDeleted())) {
-                responses.add(new CustomerResponse(
-                        customer.getFullName(),
-                        customer.getGender(),
-                        customer.getEmail()
-                ));
-            }
-        }
-
-        return responses;
+        // 👉 Use mapper to convert list
+        return customerMapper.fromCustomers(nonDeleted);
     }
 
+    @Override
+    public CustomerResponse updateByPhoneNumber(String phoneNumber, UpdateCustomerRequest updateCustomerRequest) {
+
+        Customer customer =
+                customerRepository
+                        .findByPhoneNumber(phoneNumber)
+                        .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Can't find phone number"));
+
+//        if(updateCustomerRequest.fullName() != null){
+//            customer.setFullName(updateCustomerRequest.fullName());
+//        }
+
+        customerMapper.toCustomerPartially(updateCustomerRequest,customer);
+
+        customer = customerRepository.save(customer);
+        return customerMapper.fromCustomer(customer);
+    }
 }
