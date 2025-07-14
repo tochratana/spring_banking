@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface AccountService {
     AccountResponse createNewAccount(CreateAccountRequest createAccountRequest);
+    List<AccountResponse> getAllAccount();
     AccountResponse getAccountById(Integer id);
     List<AccountResponse> getAccountsByCustomerId(Integer customerId);
     AccountResponse updateAccount(Integer id, CreateAccountRequest updateRequest);

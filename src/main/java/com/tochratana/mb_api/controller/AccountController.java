@@ -17,6 +17,11 @@ public class AccountController {
 
     private final AccountService accountService;
 
+    @GetMapping
+    public List<AccountResponse> getAllAccount(){
+        return accountService.getAllAccount();
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public AccountResponse createNewAccount(@Valid @RequestBody CreateAccountRequest createAccountRequest) {

@@ -6,6 +6,8 @@ import com.tochratana.mb_api.dto.CreateAccountRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface AccountMapper {
 
@@ -24,4 +26,6 @@ public interface AccountMapper {
     @Mapping(target = "accountType.name", source = "accountType.typeName")
     @Mapping(target = "accountType.description", source = "accountType.typeName")
     AccountResponse fromAccount(Account account);
+
+    List<AccountResponse> fromCustomers(List<Account> accounts);
 }

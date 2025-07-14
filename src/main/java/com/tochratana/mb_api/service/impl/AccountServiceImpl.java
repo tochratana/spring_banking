@@ -55,6 +55,12 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public List<AccountResponse> getAllAccount() {
+        List<Account> accounts = accountRepository.findAll();
+        return accountMapper.fromCustomers(accounts);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public AccountResponse getAccountById(Integer id) {
         Account account = accountRepository.findById(id)
