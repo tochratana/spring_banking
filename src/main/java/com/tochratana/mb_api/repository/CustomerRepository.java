@@ -36,4 +36,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
 
     List<Customer> findAllByIsDeletedFalse();
     Optional<Customer> findByPhoneNumberAndIsDeletedFalse(String phoneNumber);
+
+    Customer findByNationalCardId(String nationalCardId);
 }

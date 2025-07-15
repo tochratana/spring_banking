@@ -13,4 +13,5 @@ public interface CustomerService {
     CustomerResponse findByPhoneNumber(String phoneNumber);
     CustomerResponse createNew(CreateCustomerRequest createCustomerRequest);
     List<CustomerResponse> findAllCustomer();
+    void verifyKyc(String nationalCardId);
 }

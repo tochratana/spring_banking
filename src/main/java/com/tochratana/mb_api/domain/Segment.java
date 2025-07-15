@@ -1,11 +1,12 @@
 package com.tochratana.mb_api.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,8 +17,18 @@ import lombok.Setter;
 @Table(name = "segments")
 public class Segment {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(nullable = false)
     private String segment;
-    private Boolean isDeleted;
+
+    @Column(nullable = false)
+    private BigDecimal overLimit;
+
+    @Column(nullable = false)
+    private Boolean isDeleted = false;
+
+    @OneToMany(mappedBy = "segment")
+    private List<Customer> customers;
 }

@@ -20,7 +20,7 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PutMapping("/{phoneNumber}")
+    @PutMapping("disable/{phoneNumber}")
     public void disableByPhoneNumber(@PathVariable String phoneNumber){
         customerService.disableByPhoneNumber(phoneNumber);
     }
@@ -53,4 +53,10 @@ public class CustomerController {
     public List<CustomerResponse> findAllCustomer(){
         return customerService.findAllCustomer();
     }
+
+    @PutMapping("verify/{nationalCardId}")
+    public void verifyKyc(@PathVariable String nationalCardId) {
+        customerService.verifyKyc(nationalCardId);
+    }
+
 }

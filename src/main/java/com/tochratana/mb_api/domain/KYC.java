@@ -23,6 +23,4 @@ public class KYC {
     @JoinColumn(name = "cust_id")
     private Customer customer;
 
-
-
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -38,6 +39,12 @@ public class Customer {
     @Column(nullable = false)
     private Boolean isDeleted; // softly delete
 
+    private String nationalCardId;
+
+    // Add segment relationship
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "segment_id", nullable = false)
+    private Segment segment;
 
     /**
      * One customer can have a multiple account

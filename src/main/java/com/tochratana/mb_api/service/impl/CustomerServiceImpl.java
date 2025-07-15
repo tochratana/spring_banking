@@ -1,11 +1,15 @@
 package com.tochratana.mb_api.service.impl;
 
 import com.tochratana.mb_api.domain.Customer;
+import com.tochratana.mb_api.domain.KYC;
+import com.tochratana.mb_api.domain.Segment;
 import com.tochratana.mb_api.dto.CreateCustomerRequest;
 import com.tochratana.mb_api.dto.CustomerResponse;
 import com.tochratana.mb_api.dto.UpdateCustomerRequest;
 import com.tochratana.mb_api.mapper.CustomerMapper;
 import com.tochratana.mb_api.repository.CustomerRepository;
+import com.tochratana.mb_api.repository.KYCRepository;
+import com.tochratana.mb_api.repository.SegmentRepository;
 import com.tochratana.mb_api.service.CustomerService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +26,36 @@ public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final KYCRepository kycRepository;
+    private final SegmentRepository segmentRepository;
+
+
+    @Override
+    public void verifyKyc(String nationalCardId) {
+        // Find customer by national card ID
+        Customer customer = customerRepository.findByNationalCardId(nationalCardId);
+
+        if (customer == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Customer not found with national card ID: " + nationalCardId
+            );
+        }
+
+        KYC kyc = customer.getKyc();
+        if (kyc == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "KYC not found for customer"
+            );
+        }
+
+        // Update KYC status
+        kyc.setIsVerified(true);
+
+        // Save KYC
+        kycRepository.save(kyc);
+    }
 
     @Transactional
     @Override
@@ -50,32 +84,57 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerResponse createNew(CreateCustomerRequest createCustomerRequest) {
-
-        // validate email
-        if (customerRepository.existsByEmail(createCustomerRequest.email())){
+        // Validate email
+        if (customerRepository.existsByEmail(createCustomerRequest.email())) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, // 409 Conflict
+                    HttpStatus.CONFLICT,
                     "Customer with email already exists"
             );
         }
 
-        // validate phoneNumber
-        if (customerRepository.existsByPhoneNumber(createCustomerRequest.phoneNumber())){
+        // Validate phoneNumber
+        if (customerRepository.existsByPhoneNumber(createCustomerRequest.phoneNumber())) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, // 409 Conflict
-                    "Customer with email already exists"
+                    HttpStatus.CONFLICT,
+                    "Customer with phone number already exists"
             );
         }
 
-        // Use mapper to convert request to entity
+        // Validate national card ID
+        if (customerRepository.findByNationalCardId(createCustomerRequest.nationalCardId()) != null) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Customer with national card ID already exists"
+            );
+        }
+
+        // Validate segment exists
+        Segment segment = segmentRepository.findById(createCustomerRequest.segmentId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Segment not found with id: " + createCustomerRequest.segmentId()
+                ));
+
+        // Create customer
         Customer customer = customerMapper.toCustomer(createCustomerRequest);
         customer.setIsDeleted(false);
         customer.setAccounts(new ArrayList<>());
+        customer.setSegment(segment);
 
-        // save to db
+        // Auto-create KYC
+        KYC kyc = new KYC();
+        kyc.setIsDeleted(false);
+        kyc.setIsVerified(false);
+        kyc.setNationalCardId(createCustomerRequest.nationalCardId());
+        kyc.setCustomer(customer);
+
+        // Set KYC to customer (bidirectional relationship)
+        customer.setKyc(kyc);
+
+        // Save customer (cascade will save KYC)
         customer = customerRepository.save(customer);
 
-        // Use mapper to convert entity to response
+        // Don't auto-verify KYC - let it be verified manually via endpoint
         return customerMapper.fromCustomer(customer);
     }
 

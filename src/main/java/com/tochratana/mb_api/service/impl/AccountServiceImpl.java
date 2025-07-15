@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -37,6 +38,14 @@ public class AccountServiceImpl implements AccountService {
                         "Customer not found with id: " + createAccountRequest.customerId()
                 ));
 
+        // Validate customer KYC is verified
+        if (customer.getKyc() == null || !customer.getKyc().getIsVerified()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Customer KYC must be verified before creating account"
+            );
+        }
+
         // Validate account type exists
         AccountType accountType = accountTypeRepository.findById(createAccountRequest.accountTypeId())
                 .orElseThrow(() -> new ResponseStatusException(
@@ -44,11 +53,15 @@ public class AccountServiceImpl implements AccountService {
                         "Account type not found with id: " + createAccountRequest.accountTypeId()
                 ));
 
-        // Create account
+        // Create an account
         Account account = accountMapper.toAccount(createAccountRequest);
         account.setCustomer(customer);
         account.setAccountType(accountType);
         account.setIsDeleted(false);
+
+        // Set overLimit based on a customer segment
+        BigDecimal overLimit = customer.getSegment().getOverLimit();
+        account.setOverLimit(overLimit);
 
         account = accountRepository.save(account);
         return accountMapper.fromAccount(account);

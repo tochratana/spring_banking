@@ -46,6 +46,9 @@ public class Account {
     @NotNull
     private Boolean isDeleted = false;
 
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal overLimit;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
