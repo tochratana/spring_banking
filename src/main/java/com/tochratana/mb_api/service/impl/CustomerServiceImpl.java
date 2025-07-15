@@ -7,6 +7,7 @@ import com.tochratana.mb_api.dto.UpdateCustomerRequest;
 import com.tochratana.mb_api.mapper.CustomerMapper;
 import com.tochratana.mb_api.repository.CustomerRepository;
 import com.tochratana.mb_api.service.CustomerService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,16 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
 
+    @Transactional
+    @Override
+    public void disableByPhoneNumber(String phoneNumber) {
+        if(!customerRepository.isExistsByPhoneNumber(phoneNumber)){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Don't have phoneNumber");
+        }
+
+        customerRepository.disableByPhoneNumber(phoneNumber);
+    }
+
     @Override
     public void deleteByPhoneNumber(String phoneNumber) {
         Customer customer = customerRepository.findByPhoneNumber(phoneNumber)
@@ -32,7 +43,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerResponse findByPhoneNumber(String phoneNumber) {
 
-        return customerRepository.findByPhoneNumber(phoneNumber)
+        return customerRepository.findByPhoneNumberAndIsDeletedFalse(phoneNumber)
                 .map(customerMapper::fromCustomer)
                 .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND, "Can't find"));
     }
@@ -70,7 +81,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public List<CustomerResponse> findAllCustomer() {
-        List<Customer> customers = customerRepository.findAll();
+        List<Customer> customers = customerRepository.findAllByIsDeletedFalse();
 
         // Filter out deleted customers
         List<Customer> nonDeleted = customers.stream()

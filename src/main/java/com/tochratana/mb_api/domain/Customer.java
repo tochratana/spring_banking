@@ -36,7 +36,8 @@ public class Customer {
     private String remark;
 
     @Column(nullable = false)
-    private Boolean isDeleted;
+    private Boolean isDeleted; // softly delete
+
 
     /**
      * One customer can have a multiple account

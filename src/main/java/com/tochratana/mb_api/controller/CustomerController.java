@@ -4,6 +4,7 @@ import com.tochratana.mb_api.dto.CreateCustomerRequest;
 import com.tochratana.mb_api.dto.CustomerResponse;
 import com.tochratana.mb_api.dto.UpdateCustomerRequest;
 import com.tochratana.mb_api.service.CustomerService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,12 @@ import java.util.List;
 public class CustomerController {
 
     private final CustomerService customerService;
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PutMapping("/{phoneNumber}")
+    public void disableByPhoneNumber(@PathVariable String phoneNumber){
+        customerService.disableByPhoneNumber(phoneNumber);
+    }
 
 
     @ResponseStatus(HttpStatus.NO_CONTENT)

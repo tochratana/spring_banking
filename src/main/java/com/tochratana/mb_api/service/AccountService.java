@@ -6,6 +6,7 @@ import com.tochratana.mb_api.dto.CreateAccountRequest;
 import java.util.List;
 
 public interface AccountService {
+
     AccountResponse createNewAccount(CreateAccountRequest createAccountRequest);
     List<AccountResponse> getAllAccount();
     AccountResponse getAccountById(Integer id);
