@@ -30,14 +30,23 @@ public class KeycloakSecurityConfig {
     @Bean
     public SecurityFilterChain configureApiSecurity(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(endpoint -> endpoint
+                // Customer endpoints
                 .requestMatchers(HttpMethod.POST, "/api/v1/customers/**").hasAnyRole(ROLE_ADMIN, ROLE_STAFF)
                 .requestMatchers(HttpMethod.PUT, "/api/v1/customers/**").hasAnyRole(ROLE_ADMIN, ROLE_STAFF)
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/customers/**").hasAnyRole(ROLE_ADMIN)
                 .requestMatchers(HttpMethod.GET, "/api/v1/customers/**").hasAnyRole(ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER)
+
+                // Account endpoints
                 .requestMatchers("/api/v1/accounts/**").hasAnyRole(ROLE_ADMIN, ROLE_STAFF, ROLE_CUSTOMER)
+
+                // Media API endpoints - allow all for testing and browser access
+                .requestMatchers("/api/v1/medias/**").permitAll()
+
+                // Static media files served by MediaConfig (direct file access)
                 .requestMatchers("/media/**").permitAll()
-                .anyRequest()
-                .authenticated());
+
+                // All other requests require authentication
+                .anyRequest().authenticated());
 
         http.formLogin(form -> form.disable());
         http.csrf(token -> token.disable());
